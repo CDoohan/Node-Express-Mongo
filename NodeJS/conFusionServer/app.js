@@ -3,6 +3,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
 
 //IMPORTING ROUTES
 var indexRouter = require('./routes/index');
@@ -32,55 +34,37 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // encrypt cookie
-app.use(cookieParser('12345-67890-09876-54321'));
+// app.use(cookieParser('12345-67890-09876-54321'));
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}))
+
+// REGISTER ROUTES BEFORE AUTHENTICATION
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
 function auth(req, res, next){
-  console.log('SIGNED COOKIES', req.signedCookies);
+  console.log('SESSION REQ', req.session);
 
-  if( !req.signedCookies.user ){
-    var authHeader = req.headers.authorization;
-
-    if( !authHeader ){
-      var err = new Error('You are not authenticated');
-
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-    }
-
-    var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-
-    var username = auth[0];
-    var password = auth[1];
-
-    if( username === 'admin' && password === 'password' ){
-      res.cookie('user', 'admin', { signed : true });
-      next();
-    }
-    else{
-      var err = new Error('You are not authenticated');
-
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-    }
-
+  if( !req.session.user ){
+    var err = new Error('You are not authenticated');
+    err.status = 401;
+    return next(err);
   }
   else{
-
-    if( req.signedCookies.user === 'admin' ){
+    if( req.session.user === 'authenticated' ){
       next();
     }
     else{
       var err = new Error('You are not authenticated');
-
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
+      err.status = 403;
       return next(err);
     }
-
   }
-
 }
 
 // set authentication before set public paths
@@ -89,8 +73,6 @@ app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // REGISTER ROUTES
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter)
