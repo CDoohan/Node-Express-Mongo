@@ -32,7 +32,7 @@ router.post('/signup', function(req,res,next){
 router.post('/login', passport.authenticate('local'), (req,res,next) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({ success: true, status: 'Registration Successful' });
+  res.json({ success: true, status: 'You are logged!' });
 })
 
 router.get('/logout', (req,res,next) => {
