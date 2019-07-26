@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const dishRouter = express.Router();
 
 const Dishes = require('../models/dishes');
-
+const authenticate = require('../authenticate');
 /**
  * initialize the body parser to be used.
  */
@@ -32,7 +32,7 @@ dishRouter.route('/')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.post((req,res,next) => {
+.post( authenticate.verifyUser,(req,res,next) => {
     Dishes.create(req.body)
         .then((dish) => {
             console.log('Dish Created', dish);
@@ -42,11 +42,11 @@ dishRouter.route('/')
         }, err => next(err))
         .catch( (err) => next(err))
 })
-.put((req,res,next) => {
+.put( authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403//403 significa que não é suportado
     res.end('PUT operation not supported on Dishes')
 })
-.delete((req, res) => {
+.delete( authenticate.verifyUser, (req, res) => {
     Dishes.remove({})
         .then((response) => {
             res.statusCode = 200;
@@ -66,12 +66,12 @@ dishRouter.route('/:dishId')
         }, err => next(err))
         .catch( err => next(err))
 })
-.post((req,res,next) => {
+.post( authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /dishes/'+ req.params.dishId);
 })
 // $set it's where the data updated will be contained
-.put((req,res,next) => {
+.put( authenticate.verifyUser, (req,res,next) => {
     Dishes.findByIdAndUpdate(req.params.dishId, {
         $set: req.body
     }, { new : true })
@@ -82,7 +82,7 @@ dishRouter.route('/:dishId')
         }, err => next(err))
         .catch( err => next(err))
 })
-.delete((req, res) => {
+.delete( authenticate.verifyUser, (req, res) => {
     Dishes.findByIdAndRemove(req.params.dishId)
         .then( dish => {
             res.statusCode = 200;
@@ -108,7 +108,7 @@ dishRouter.route('/:dishId/comments')
         }, (err) => next(err))
         .catch((err) => next(err));
 })
-.post((req,res,next) => {
+.post( authenticate.verifyUser, (req,res,next) => {
     Dishes.findById(req.params.dishId)
         .then((dish) => {
             if( dish != null){
@@ -128,11 +128,11 @@ dishRouter.route('/:dishId/comments')
         }, err => next(err))
         .catch( (err) => next(err))
 })
-.put((req,res,next) => {
+.put( authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403//403 significa que não é suportado
     res.end('PUT operation not supported on /dishes/' + req.params.dishId + '/comments')
 })
-.delete((req, res) => {
+.delete( authenticate.verifyUser, (req, res) => {
     Dishes.findById(req.params.dishId)
         .then(dish => {
             if (dish != null){
@@ -177,12 +177,12 @@ dishRouter.route('/:dishId/comments/:commentId')
         }, err => next(err))
         .catch( err => next(err))
 })
-.post((req,res,next) => {
+.post(authenticate.verifyUser, (req,res,next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /dishes/'+ req.params.dishId+'/comments/'+req.params.commentId);
 })
 // $set it's where the data updated will be contained
-.put((req,res,next) => {
+.put( authenticate.verifyUser, (req,res,next) => {
     Dishes.findById(req.params.dishId)
         .then( dish => {
             if( dish != null && dish.comments.id(req.params.commentId)){
@@ -212,7 +212,7 @@ dishRouter.route('/:dishId/comments/:commentId')
         })
     .catch( err => next(err));
 })
-.delete((req, res) => {
+.delete(authenticate.verifyUser, (req, res) => {
     Dishes.findById(req.params.dishId)
         .then(dish => {
             if( dish != null && dish.comments.id(req.params.commentId)){
