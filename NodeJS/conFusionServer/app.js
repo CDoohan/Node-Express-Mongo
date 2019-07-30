@@ -15,6 +15,7 @@ var usersRouter = require('./routes/users');
 const dishRouter = require('./routes/dishRouter');
 const leaderRouter = require('./routes/leaderRouter');
 const promoRouter = require('./routes/promoRouter');
+const uploadRouter = require('./routes/uploadRouter');
 
 const mongoose = require('mongoose');
 
@@ -32,7 +33,7 @@ var app = express();
 // SETTING SECURE TRAFIC ONLY (HTTPS ONLY)
 app.all('*', (req, res, next) => {
   if (req.secure) {
-    return next();
+    return next(); 
   }
   else {
     res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
@@ -92,7 +93,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // REGISTER ROUTES
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
-app.use('/promotions', promoRouter)
+app.use('/promotions', promoRouter);
+app.use('/imageUpload',uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
