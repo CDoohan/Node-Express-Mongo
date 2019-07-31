@@ -1,6 +1,6 @@
 # Confusion Server
 
-Confusion Server é uma API voltada para o restaurante conFusion. 
+Confusion Server é uma API para o restaurante conFusion. 
 
 ## Instalação
 
